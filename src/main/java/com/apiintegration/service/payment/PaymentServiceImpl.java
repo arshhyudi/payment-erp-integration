@@ -1,13 +1,15 @@
 package com.apiintegration.service.payment;
 
-import com.apiintegration.dto.payment.PaymentRequest;
+import com.apiintegration.dto.payment.PaymentRequestDto;
+import com.apiintegration.dto.payment.PaymentResponseDto;
 import com.apiintegration.entity.payment.Payment;
+import com.apiintegration.enums.PaymentStatus;
 import com.apiintegration.repository.payment.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -15,18 +17,28 @@ public class PaymentServiceImpl implements PaymetService{
     private final PaymentRepository paymentRepository;
 
     @Override
-    public String createPayment(PaymentRequest request) {
-
+    @Transactional
+    public PaymentResponseDto createPayment(PaymentRequestDto requestDto) {
+        paymentRepository.findByOrderId(requestDto.getOrderId())
+                .ifPresent(payment -> {
+                    throw new IllegalArgumentException(
+                            "Payment already exists for orderId: " + requestDto.getOrderId()
+                    );
+                });
         Payment payment = Payment.builder()
-                .transactionId(UUID.randomUUID().toString())
-                .orderId(request.getOrderId())
-                .amount(request.getAmount())
-                .currency(request.getCurrency())
-                .status("RECEIVED")
+                .orderId(requestDto.getOrderId())
+                .amount(requestDto.getAmount())
+                .currency(requestDto.getCurrency())
+                .status(PaymentStatus.CREATED)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         paymentRepository.save(payment);
-        return payment.getTransactionId();
+
+        return new PaymentResponseDto(
+                payment.getOrderId(),
+                payment.getStatus(),
+                "Payment created successfully"
+        );
     }
 }
