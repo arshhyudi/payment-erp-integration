@@ -1,7 +1,8 @@
 package com.apiintegration.controller.payment;
 
 
-import com.apiintegration.dto.payment.PaymentRequest;
+import com.apiintegration.dto.payment.PaymentRequestDto;
+import com.apiintegration.dto.payment.PaymentResponseDto;
 import com.apiintegration.service.payment.PaymentServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class PaymentController {
   private final PaymentServiceImpl  paymentService;
     @PostMapping("/new/payment")
-    public ResponseEntity<String> createPayment(
-            @RequestBody @Valid PaymentRequest request) {
+    public ResponseEntity<PaymentResponseDto> createPayment(
+            @Valid @RequestBody PaymentRequestDto requestDto) {
 
-        return ResponseEntity.ok(
-                paymentService.createPayment(request)
-        );
+        return ResponseEntity.ok(paymentService.createPayment(requestDto));
     }
 }
